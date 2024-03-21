@@ -74,6 +74,9 @@
                       <el-row>
                         <el-checkbox v-model="form.fdn" label="过滤非法节点"></el-checkbox>
                       </el-row>
+                      <el-row>
+                        <el-checkbox v-model="form.expand" label="是否展开规则"></el-checkbox>
+                      </el-row>
                       <el-button slot="reference">更多选项</el-button>
                     </el-popover>
                     <el-popover placement="bottom" style="margin-left: 10px">
@@ -180,8 +183,9 @@ const project = process.env.VUE_APP_PROJECT
 const remoteConfigSample = process.env.VUE_APP_SUBCONVERTER_REMOTE_CONFIG
 const gayhubRelease = process.env.VUE_APP_BACKEND_RELEASE
 const defaultBackend = process.env.VUE_APP_SUBCONVERTER_DEFAULT_BACKEND + '/sub?'
-const shortUrlBackend = process.env.VUE_APP_MYURLS_API
-const configUploadBackend = process.env.VUE_APP_CONFIG_UPLOAD_API
+const defaultURl = process.env.VUE_APP_SUBCONVERTER_DEFAULT
+const shortUrlBackend = process.env.VUE_APP_MYURLS_DEFAULT_BACKEND + '/short'
+const configUploadBackend = process.env.VUE_APP_CONFIG_UPLOAD_BACKEND + '/config/upload'
 const tgBotLink = process.env.VUE_APP_BOT_LINK
 
 export default {
@@ -230,6 +234,11 @@ export default {
           {
             label: "customized",
             options: [
+              {
+                label: "Hex",
+                value:
+                  `${defaultURl}/config.ini`
+              },
               {
                 label: "Maying",
                 value:
@@ -300,6 +309,7 @@ export default {
         tfo: false,
         scv: true,
         fdn: false,
+        expand: false,
         appendType: false,
         insert: false, // 是否插入默认订阅的节点，对应配置项 insert_url
         new_name: true, // 是否使用 Clash 新字段
@@ -439,7 +449,9 @@ export default {
           "&fdn=" +
           this.form.fdn.toString() +
           "&sort=" +
-          this.form.sort.toString();
+          this.form.sort.toString() +
+          "&expand=" +
+          this.form.expand.toString();
 
         if (this.needUdp) {
           this.customSubUrl += "&udp=" + this.form.udp.toString()
@@ -622,6 +634,7 @@ export default {
           this.form.scv = params.get("scv") === "true";
           this.form.fdn = params.get("fdn") === "true";
           this.form.sort = params.get("sort") === "true";
+          this.form.expand = params.get("expand") === 'true';
           this.form.udp = params.get("udp") === "true";
           this.form.tpl.surge.doh = params.get("surge.doh") === "true";
           this.form.tpl.clash.doh = params.get("clash.doh") === "true";
@@ -639,7 +652,7 @@ export default {
       })();
     },
     backendSearch(queryString, cb) {
-      let backends = this.options.backendOptions;
+      let backends = defaultBackend //this.options.backendOptions;
 
       let results = queryString
         ? backends.filter(this.createFilter(queryString))
